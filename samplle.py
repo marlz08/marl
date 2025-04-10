@@ -17,7 +17,7 @@ expected_title = "DOST PPM"
 if expected_title not in actual_title:
     raise AssertionError("Login Test Failed")
 else:
-    print("Login Successfully")
+    print("Login is Successfully")
 # Open login page
 
 
