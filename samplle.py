@@ -17,13 +17,21 @@ try:
     driver.get("http://10.10.99.18:8002/auditor")
     wait = WebDriverWait(driver, 10)
 
+    # Wait for the header element to appear
+    login_header = wait.until(EC.presence_of_element_located((
+        By.XPATH, '//*[@id="login-body"]/section/div/div/div/div/div/div[1]/div/div/h1'
+    )))
+
+    # Assertion to check the header text is "LOGIN"
+    assert login_header.text.strip() == "LOGIN", f"Expected 'LOGIN', but got '{login_header.text.strip()}'"
+    print("Assertion passed: LOGIN header is displayed correctly.")
+
     # --- Username Field ---
     username = wait.until(EC.presence_of_element_located((By.NAME, "username")))
     username.clear()
     username.send_keys("marllesterflorida@gmail.com")
     print("Username entered.")
     time.sleep(1)
-
     # Assert that the username matches the expected value
     assert username.get_attribute(
         "value") == "marllesterflorida@gmail.com", "Username does not match the expected value!"
@@ -34,26 +42,123 @@ try:
     password.send_keys("Dost@1234")
     print("Password entered.")
     time.sleep(1)
-
     # Assert that the password matches the expected value
     assert password.get_attribute("value") == "Dost@1234", "Password does not match the expected value!"
 
-    # --- Login Button ---
-    login_button = wait.until(EC.element_to_be_clickable((By.ID, "login")))
+    # --- Login Button with Assertion ---
+    login_button = wait.until(EC.presence_of_element_located((By.ID, "login")))
+    # Assertions
+    assert login_button.is_displayed(), "Login button is not visible on the page."
+    assert login_button.is_enabled(), "Login button is not enabled."
+    print("Assertion passed: Login button is visible and enabled.")
+    # Click the button
     login_button.click()
     print("Login button clicked.")
     time.sleep(1)
 
-    # --- Wait for ICQ Page ---
-    wait.until(EC.title_contains("ICQ"))
-    print("Login Successful: ICQ page loaded.")
-    time.sleep(1)
+    # --- Wait and Assert ICQ Page Loaded ---
+    try:
+        wait.until(EC.title_contains("ICQ"))
+        current_title = driver.title
+        # Assert that the title contains 'ICQ'
+        assert "ICQ" in current_title, f"Page title does not contain 'ICQ'. Current title: '{current_title}'"
+        print("Assertion passed: Login successful, ICQ page loaded.")
+    except AssertionError as ae:
+        print(f"Assertion Error: {ae}")
+    except Exception as e:
+        print(f"Error: ICQ page did not load as expected. Exception: {e}")
+
+    # --- Assert DOST Logo is Displayed and Loaded ---
+    dost_logo = wait.until(EC.presence_of_element_located((
+        By.XPATH, '//*[@id="content"]/div[1]/div/div[2]/div/div/div/div[1]/img'
+    )))
+    if dost_logo:
+        assert dost_logo.is_displayed(), "DOST logo is not visible on the page."
+        assert dost_logo.get_attribute(
+            "src") == "http://10.10.99.18:8002/images/dost.png", "DOST logo source is incorrect."
+        print("Assertion passed: DOST logo")
+    else:
+        print("DOST logo element not found on the page.")
+
+        # --- Assert Food and Nutrition Research Institute (FNRI) Text ---
+    try:
+        # Wait until the element is present
+        agn_name_element = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="agn_name"]')))
+        # Extract the text
+        agn_name_text = agn_name_element.text.strip()
+        # Assert that the text matches the expected value
+        assert agn_name_text == "Food and Nutrition Research Institute (FNRI)", f"Text mismatch! Found: {agn_name_text}"
+        print("Assertion passed: Food and Nutrition Research Institute (FNRI)")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # --- Assert Internal Text from ara_name ---
+    try:
+        # Wait until the element is present
+        ara_name_element = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="ara_name"]')))
+        # Extract the text
+        ara_name_text = ara_name_element.text.strip()
+        # Assert that the text matches the expected value
+        assert ara_name_text == "Internal", f"Text mismatch! Found: {ara_name_text}"
+        print("Assertion passed: Internal")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # --- Assert INTERNAL CONTROL QUESTIONNAIRE (ICQ) Text ---
+    try:
+        # Wait until the element is present
+        icq_header_element = wait.until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/div/div[2]/div/div/div/div[1]/h5')))
+        # Extract and clean the text
+        icq_header_text = icq_header_element.text.strip()
+        # Assert the text matches expected value
+        expected_text = "INTERNAL CONTROL QUESTIONNAIRE (ICQ)"
+        assert icq_header_text == expected_text, f"Text mismatch! Found: '{icq_header_text}'"
+        print("Assertion passed: INTERNAL CONTROL QUESTIONNAIRE (ICQ)")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # --- Date of Audit ---
+    try:
+        label = wait.until(EC.visibility_of_element_located((By.XPATH, '//label[@for="icq_date"]')))
+        assert "Date of Audit" in label.text
+        print("Assertion passed: Date of Audit")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # --- Date input ---
+    try:
+        icq_date_input = wait.until(EC.presence_of_element_located((By.ID, "icq_date")))
+        assert icq_date_input.is_displayed(), "ICQ date input is not visible."
+        assert icq_date_input.is_enabled(), "ICQ date input is not enabled."
+        print("Assertion passed: ICQ date input")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # ---  auditees_label ---
+    try:
+        auditees_label = wait.until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="auditees-container"]/div/label')))
+        assert auditees_label.text.strip() == "Auditees", f"Text mismatch! Found: '{auditees_label.text.strip()}'"
+        print("Assertion passed: Auditees")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # ---  auditees_input ---
+    try:
+        auditees_input = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="icq_auditees"]')))
+        # Optionally, check that the value is correct if needed
+        assert auditees_input.get_attribute(
+            "value") == "marl", f"Value mismatch! Found: '{auditees_input.get_attribute('value')}'"
+        print("Assertion passed: Auditees input")
+    except Exception as e:
+        print(f"Error: {e}")
 
     # --- Date Field ---
     date_of_audit = wait.until(EC.element_to_be_clickable((By.ID, "icq_date")))
     date_of_audit.clear()
     date_of_audit.send_keys("04/24/2025")
-    print("Date entered.")
+    print("Date entered")
     time.sleep(1)
 
     # --- Auditees ---
@@ -127,7 +232,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print(" Category 1 Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Category 2' Row ---
@@ -178,7 +283,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print(" Category 2 Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Sample 1' Row ---
@@ -233,7 +338,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Sample 1 Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Sample 2' Row ---
@@ -264,7 +369,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Sample 2 Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Risk Managemen' Row ---
@@ -295,7 +400,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Risk Managemen Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Procurement Integrity' Row ---
@@ -326,7 +431,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Procurement Integrity Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Test Only' Row ---
@@ -357,7 +462,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Test Only Modal closed .")
     time.sleep(1)
 
     # --- Click on 'Internal Controls and Compliance' Row ---
@@ -398,7 +503,7 @@ try:
 
     # Click the close button
     driver.execute_script("arguments[0].click();", close_button)
-    print(" Modal closed .")
+    print("Internal Controls and Compliance Modal closed .")
     time.sleep(1)
 
     # --- Q1 ---
@@ -785,7 +890,7 @@ try:
 
                 # Click the close button
                 driver.execute_script("arguments[0].click();", close_button)
-                print("Modal closed.")
+                print("Q2 Modal closed.")
                 time.sleep(1)
 
             except Exception as e:
